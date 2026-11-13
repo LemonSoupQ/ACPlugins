@@ -80,9 +80,11 @@ end
 pcall(function()
   if ac.onOnlineEvent then
     ac.onOnlineEvent("overtakePB", function(sender, data)
-      if data and data.name then
-        updateLeaderboard(data.name, data.score or 0)
-      end
+      pcall(function()
+        if data and data.name then
+          updateLeaderboard(data.name, data.score or 0)
+        end
+      end)
     end)
   end
 end)
