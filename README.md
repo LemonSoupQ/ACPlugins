@@ -1,32 +1,44 @@
 # ACPlugins - No Hesi-Style Traffic Points System
 
-CSP online Lua script (client HUD) + optional AssettoServer C# plugin for global leaderboards.
+CSP online Lua script (client HUD) + optional AssettoServer C# plugin scaffold.
 
 ## Files
 
 - `overtake.lua` - CSP online Lua script (points & combo HUD, near-miss detection, personal bests, drift/wrong-way/speed-tier scoring, live top-10 leaderboard).
-- `cfg/csp_extra_options.ini` - Server config snippet (script served from the server's own HTTP endpoint).
-- `plugins/CustomOvertakePlugin/` - Optional .NET 8 server plugin scaffold.
+- `cfg/csp_extra_options.ini` - Server config snippet (script served over HTTP from the host).
+- `cfg/overtake.lua` - Copy of the script for the server's cfg/ folder.
+- `plugins/CustomOvertakePlugin/` - Optional .NET 8 server plugin scaffold (not buildable on self-contained servers).
 
-## Setup (plugin-based, serves the script over the server's own HTTP endpoint)
+## Setup (HTTP server approach)
+
+CSP on this server can't fetch HTTPS/external files, so `overtake.lua` is served over HTTP from the Ubuntu host.
 
 1. Ensure `EnableClientMessages: true` in `cfg/extra_cfg.yml`.
-2. Copy `cfg/csp_extra_options.ini` into your server's `cfg/` (merge if it exists).
-3. Upload `overtake.lua` to the server's `cfg/` folder (so the plugin can read it).
-4. Build the plugin on the server:
+2. Upload `overtake.lua` to the server's `cfg/` folder.
+3. Copy `cfg/csp_extra_options.ini` into the server's `cfg/` (merge if it exists).
+4. Host `overtake.lua` over HTTP on the Ubuntu host (port 8090):
+   ```bash
+   mkdir -p /opt/overtake
+   cp cfg/overtake.lua /opt/overtake/overtake.lua
+   # systemd service (see below)
    ```
-   cd plugins/CustomOvertakePlugin
-   dotnet build -c Release
-   ```
-5. Upload `bin/Release/net8.0/CustomOvertakePlugin.dll` to `plugins/CustomOvertakePlugin/` on the server.
-6. Add `- CustomOvertakePlugin` under `EnablePlugins:` in `cfg/extra_cfg.yml`.
-7. Restart the server. The plugin embeds the script into the welcome message; CSP runs it on join.
+5. Open port 8090 in the firewall.
+6. Restart the server. CSP downloads the script automatically when players join `main_layout`.
 
-## Optional plugin build
+### systemd unit for the HTTP server
+```ini
+[Unit]
+Description=Overtake Lua HTTP server
+After=network.target
 
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 -m http.server 8090 --directory /opt/overtake
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
 ```
-cd plugins/CustomOvertakePlugin
-dotnet build -c Release
-```
 
-Upload `bin/Release/net8.0/CustomOvertakePlugin.dll` to `plugins/CustomOvertakePlugin/` on the server and add `- CustomOvertakePlugin` under `EnablePlugins:` in `cfg/extra_cfg.yml`. Requires `AssettoServer.Shared.dll` from the server root (adjust HintPath in csproj).
+When you update `overtake.lua`, copy it to both `cfg/` and `/opt/overtake/`, then restart.
