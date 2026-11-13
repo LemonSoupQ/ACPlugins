@@ -4,19 +4,20 @@ CSP online Lua script (client HUD) + optional AssettoServer C# plugin for global
 
 ## Files
 
-- `overtake.lua` - CSP online Lua script (points & combo HUD, near-miss detection, personal bests, drift/wrong-way/speed-tier scoring, live top-10 leaderboard). Hosted as a public Gist.
-- `cfg/csp_extra_options.ini` - Server config snippet referencing the Gist raw URL.
+- `overtake.lua` - CSP online Lua script (points & combo HUD, near-miss detection, personal bests, drift/wrong-way/speed-tier scoring, live top-10 leaderboard).
+- `cfg/csp_extra_options.ini` - Server config snippet (script served from the server's own HTTP endpoint).
 - `plugins/CustomOvertakePlugin/` - Optional .NET 8 server plugin scaffold.
 
-## Gist (raw URL used by the server)
+## Script URL (served from the server's own HTTP endpoint)
 
-https://raw.githubusercontent.com/LemonSoupQ/ACPlugins/main/overtake.lua
+http://{ServerIP}:{ServerHTTPPort}/static/overtake.lua
 
 ## Setup
 
 1. Ensure `EnableClientMessages: true` in `cfg/extra_cfg.yml`.
 2. Copy `cfg/csp_extra_options.ini` into your server's `cfg/` (merge if it exists).
-3. Restart the server. CSP downloads the script automatically when players join `main_layout`.
+3. Upload `overtake.lua` to the server's `wwwroot/` folder (create it if missing) so CSP fetches it over HTTP.
+4. Restart the server. CSP downloads the script automatically when players join `main_layout`.
 
 ## Optional plugin build
 
