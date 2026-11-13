@@ -10,7 +10,7 @@ CSP online Lua script (client HUD) + optional AssettoServer C# plugin for global
 
 ## Gist (raw URL used by the server)
 
-https://gist.githubusercontent.com/LemonSoupQ/f6fdffe9839c62572af0a8b666c3f388/raw/overtake.lua
+https://raw.githubusercontent.com/LemonSoupQ/ACPlugins/main/overtake.lua
 
 ## Setup
 
