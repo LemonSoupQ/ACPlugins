@@ -1,8 +1,12 @@
 using AssettoServer.Server;
+using AssettoServer.Server.Configuration;
 using AssettoServer.Server.Plugin;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CustomOvertakePlugin;
 
@@ -17,24 +21,34 @@ public class OvertakeModule : AssettoServerModule<OvertakeConfiguration>
 
 public class OvertakeConfiguration : IValidateConfiguration
 {
-    public int MinChatAnnounceScore { get; set; } = 10000;
+    public string ScriptFileName { get; set; } = "overtake.lua";
     public void Validate() { }
 }
 
 public class OvertakeService : BackgroundService
 {
-    private readonly EntryCarManager _entryCarManager;
-    private readonly OvertakeConfiguration _config;
+    private readonly ACServerConfiguration _config;
+    private readonly CSPServerScriptProvider _scriptProvider;
+    private readonly OvertakeConfiguration _cfg;
 
-    public OvertakeService(EntryCarManager entryCarManager, OvertakeConfiguration config)
+    public OvertakeService(ACServerConfiguration config, CSPServerScriptProvider scriptProvider, OvertakeConfiguration cfg)
     {
-        _entryCarManager = entryCarManager;
         _config = config;
+        _scriptProvider = scriptProvider;
+        _cfg = cfg;
     }
 
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        Log.Information("Custom Overtake Plugin loaded (Chat announce threshold: {Score})", _config.MinChatAnnounceScore);
+        var path = Path.Combine(_config.BaseFolder, _cfg.ScriptFileName);
+        if (!File.Exists(path))
+        {
+            Log.Warning("Overtake script not found at {Path}; place overtake.lua in cfg/", path);
+            return Task.CompletedTask;
+        }
+        var script = File.ReadAllText(path);
+        _scriptProvider.AddScript(script, "overtake.lua");
+        Log.Information("Loaded overtake script from {Path} ({Length} bytes)", path, script.Length);
         return Task.CompletedTask;
     }
 }

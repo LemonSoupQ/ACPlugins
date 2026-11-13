@@ -7,10 +7,13 @@
     <RootNamespace>CustomOvertakePlugin</RootNamespace>
   </PropertyGroup>
 
-  <!-- AssettoServer.Shared.dll lives in your server's root folder. Adjust the HintPath if needed. -->
+  <!-- DLLs found in the server's root folder. Adjust HintPaths if your layout differs. -->
   <ItemGroup>
+    <Reference Include="AssettoServer">
+      <HintPath>..\..\AssettoServer.dll</HintPath>
+    </Reference>
     <Reference Include="AssettoServer.Shared">
-      <HintPath>..\..\..\AssettoServer.Shared.dll</HintPath>
+      <HintPath>..\..\AssettoServer.Shared.dll</HintPath>
     </Reference>
   </ItemGroup>
 
