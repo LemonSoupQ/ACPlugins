@@ -4,7 +4,7 @@ CSP online Lua script (client HUD) + optional AssettoServer C# plugin for global
 
 ## Files
 
-- `overtake.lua` - CSP online Lua script (points & combo HUD, near-miss detection, personal bests). Hosted as a public Gist.
+- `overtake.lua` - CSP online Lua script (points & combo HUD, near-miss detection, personal bests, drift/wrong-way/speed-tier scoring, live top-10 leaderboard). Hosted as a public Gist.
 - `cfg/csp_extra_options.ini` - Server config snippet referencing the Gist raw URL.
 - `plugins/CustomOvertakePlugin/` - Optional .NET 8 server plugin scaffold.
 
