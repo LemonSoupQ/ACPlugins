@@ -5,7 +5,7 @@ local combo = 1.0
 local comboTimer = 0
 local maxComboTime = 5.0
 local minSpeedKmh = 95
-local nearMissDist = 7.5
+local nearMissDist = 3.5
 local passedCars = {}
 local statusText = ""
 local statusTimer = 0
@@ -247,11 +247,14 @@ function script.drawUI()
   if popupTimer > 0 then
     local alpha = math.min(1.0, popupTimer / 0.5)
     local scr = getScreenSize()
-    local fontSize = 32
-    local estWidth = #popupText * (fontSize * 0.55)
+    local fontSize = 40
+    local charW = fontSize * 0.62
+    local estWidth = #popupText * charW
     local x = (scr.x / 2) - (estWidth / 2)
-    local y = 60
+    local y = 80
     local col = rgbm(popupColor.r, popupColor.g, popupColor.b, alpha)
+    local bg = rgbm(0.0, 0.0, 0.0, alpha * 0.55)
+    ui.drawRectFilled(vec2(x - 16, y - 8), vec2(x + estWidth + 16, y + fontSize + 8), bg, 6)
     ui.dwriteDrawText(popupText, fontSize, vec2(x, y), col)
   end
 end
