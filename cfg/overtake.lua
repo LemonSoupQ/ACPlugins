@@ -16,10 +16,25 @@ local driftActive = false
 local wrongWayMult = 1.5
 local driftBonusRate = 0.20
 local broadcastTimer = 0
+local popupText = ""
+local popupTimer = 0
+local popupColor = rgbm(0.3, 1, 0.5, 1)
 
 local function triggerStatus(msg)
   statusText = msg
   statusTimer = 2.5
+end
+
+local function triggerPopup(msg, col)
+  popupText = msg
+  popupTimer = 2.0
+  popupColor = col or rgbm(0.3, 1, 0.5, 1)
+end
+
+local function getScreenSize()
+  local ok, ui = pcall(ac.getUI)
+  if ok and ui and ui.windowSize then return ui.windowSize end
+  return vec2(1920, 1080)
 end
 
 local function speedMult(spd)
@@ -100,6 +115,7 @@ function script.update(dt)
         stored.pb = math.floor(score)
         broadcastPB()
         ac.sendChatMessage(string.format("New Personal Best: %d pts!", stored.pb))
+        triggerPopup(string.format("NEW PB! %d PTS", stored.pb), rgbm(1, 0.85, 0.2, 1))
       end
       triggerStatus("CRASHED! RUN LOST")
     end
@@ -117,6 +133,7 @@ function script.update(dt)
         stored.pb = math.floor(score)
         broadcastPB()
         ac.sendChatMessage(string.format("New Personal Best: %d pts!", stored.pb))
+        triggerPopup(string.format("NEW PB! %d PTS", stored.pb), rgbm(1, 0.85, 0.2, 1))
       end
       score = 0
       combo = 1.0
@@ -126,6 +143,10 @@ function script.update(dt)
 
   if statusTimer > 0 then
     statusTimer = statusTimer - dt
+  end
+
+  if popupTimer > 0 then
+    popupTimer = popupTimer - dt
   end
 
   driftActive = isDrifting(player)
@@ -162,6 +183,7 @@ function script.update(dt)
           combo = math.min(10.0, combo + 0.2)
           comboTimer = maxComboTime
           triggerStatus(string.format("NEAR MISS +%d", pointsGained))
+          triggerPopup(string.format("+%d PTS", pointsGained), rgbm(0.3, 1, 0.5, 1))
         elseif dist > 25 and passedCars[i] then
           passedCars[i] = nil
         end
@@ -220,5 +242,16 @@ function script.drawUI()
   for i = 1, math.min(10, #leaderboard) do
     local e = leaderboard[i]
     ui.dwriteDrawText(string.format("%d. %s  %d", i, e.name, math.floor(e.score)), 12, lbPos + vec2(14, 26 + (i - 1) * 14), rgbm(0.85, 0.85, 0.9, 1))
+  end
+
+  if popupTimer > 0 then
+    local alpha = math.min(1.0, popupTimer / 0.5)
+    local scr = getScreenSize()
+    local fontSize = 32
+    local estWidth = #popupText * (fontSize * 0.55)
+    local x = (scr.x / 2) - (estWidth / 2)
+    local y = 60
+    local col = rgbm(popupColor.r, popupColor.g, popupColor.b, alpha)
+    ui.dwriteDrawText(popupText, fontSize, vec2(x, y), col)
   end
 end
