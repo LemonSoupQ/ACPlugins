@@ -19,6 +19,10 @@ local broadcastTimer = 0
 local popupText = ""
 local popupTimer = 0
 local popupColor = rgbm(0.3, 1, 0.5, 1)
+local maxHP = 2
+local hp = maxHP
+local startupPopup = true
+local startupTimer = 3.0
 
 local function triggerStatus(msg)
   statusText = msg
@@ -33,7 +37,10 @@ end
 
 local function getScreenSize()
   local ok, ui = pcall(ac.getUI)
-  if ok and ui and ui.windowSize then return ui.windowSize end
+  if ok and ui then
+    if ui.windowSize then return ui.windowSize end
+    if ui.screenSize then return ui.screenSize end
+  end
   return vec2(1920, 1080)
 end
 
@@ -109,6 +116,11 @@ function script.update(dt)
   local sim = ac.getSim()
   if not player or not sim then return end
 
+  if startupPopup then
+    startupTimer = startupTimer - dt
+    if startupTimer <= 0 then startupPopup = false end
+  end
+
   if player.collisionDepth > 0 then
     if score > 0 then
       if score > stored.pb then
@@ -117,7 +129,15 @@ function script.update(dt)
         ac.sendChatMessage(string.format("New Personal Best: %d pts!", stored.pb))
         triggerPopup(string.format("NEW PB! %d PTS", stored.pb), rgbm(1, 0.85, 0.2, 1))
       end
-      triggerStatus("CRASHED! RUN LOST")
+      hp = hp - 1
+      if hp <= 0 then
+        hp = maxHP
+        triggerStatus("OUT OF HP! RESET")
+        triggerPopup("OUT OF HP! RESET", rgbm(1, 0.3, 0.3, 1))
+      else
+        triggerStatus(string.format("CRASHED! %d HP LEFT", hp))
+        triggerPopup(string.format("CRASH! %d HP LEFT", hp), rgbm(1, 0.3, 0.3, 1))
+      end
     end
     score = 0
     combo = 1.0
@@ -212,10 +232,11 @@ function script.drawUI()
   ui.dwriteDrawText(string.format("%.1fx", combo), 22, pos + vec2(195, 11), rgbm(0.75, 0.4, 1, 1))
 
   ui.dwriteDrawText(string.format("PB: %d PTS", stored.pb), 13, pos + vec2(14, 44), rgbm(0.7, 0.7, 0.75, 1))
+  ui.dwriteDrawText(string.format("HP: %d/%d", hp, maxHP), 13, pos + vec2(14, 60), rgbm(1, 0.4, 0.4, 1))
 
   if statusTimer > 0 then
     local col = statusText:find("CRASH") and rgbm(1, 0.3, 0.3, 1) or rgbm(0.3, 1, 0.5, 1)
-    ui.dwriteDrawText(statusText, 14, pos + vec2(14, 66), col)
+    ui.dwriteDrawText(statusText, 14, pos + vec2(14, 78), col)
   end
 
   if driftActive then
@@ -244,6 +265,18 @@ function script.drawUI()
     ui.dwriteDrawText(string.format("%d. %s  %d", i, e.name, math.floor(e.score)), 12, lbPos + vec2(14, 26 + (i - 1) * 14), rgbm(0.85, 0.85, 0.9, 1))
   end
 
+  if startupPopup then
+    local scr = getScreenSize()
+    local msg = "OVERTAKE LOADED"
+    local fontSize = 28
+    local estWidth = #msg * (fontSize * 0.6)
+    local x = (scr.x / 2) - (estWidth / 2)
+    local y = 120
+    local bg = rgbm(0.0, 0.0, 0.0, 0.6)
+    ui.drawRectFilled(vec2(x - 16, y - 8), vec2(x + estWidth + 16, y + fontSize + 8), bg, 6)
+    ui.dwriteDrawText(msg, fontSize, vec2(x, y), rgbm(0.75, 0.4, 1, 1))
+  end
+
   if popupTimer > 0 then
     local alpha = math.min(1.0, popupTimer / 0.5)
     local scr = getScreenSize()
@@ -251,7 +284,7 @@ function script.drawUI()
     local charW = fontSize * 0.62
     local estWidth = #popupText * charW
     local x = (scr.x / 2) - (estWidth / 2)
-    local y = 80
+    local y = 60
     local col = rgbm(popupColor.r, popupColor.g, popupColor.b, alpha)
     local bg = rgbm(0.0, 0.0, 0.0, alpha * 0.55)
     ui.drawRectFilled(vec2(x - 16, y - 8), vec2(x + estWidth + 16, y + fontSize + 8), bg, 6)
