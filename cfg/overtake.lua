@@ -5,7 +5,7 @@ local combo = 1.0
 local comboTimer = 0
 local maxComboTime = 5.0
 local minSpeedKmh = 95
-local nearMissDist = 3.5
+local nearMissDist = 2.0
 local passedCars = {}
 local statusText = ""
 local statusTimer = 0
@@ -175,7 +175,7 @@ function script.update(dt)
         local dist = math.distance(player.position, target.position)
         if dist < nearMissDist and not passedCars[i] then
           passedCars[i] = true
-          local proximityBonus = math.max(1.0, (nearMissDist - dist) * 0.6)
+          local proximityBonus = math.max(1.0, 1.0 + (nearMissDist - dist) * 0.75)
           local pointsGained = math.floor((150 + player.speedKmh) * proximityBonus * combo * speedMult(player.speedKmh))
           if wrongWay then pointsGained = math.floor(pointsGained * wrongWayMult) end
           if driftActive then pointsGained = math.floor(pointsGained * 1.2) end
